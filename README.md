@@ -21,6 +21,7 @@
 - [Authentication](docs/authentication.md) - Multi-method auth, token caching, and security
 - [Configuration](docs/configuration.md) - Priority resolution and config management
 - [Command Reference](docs/commands.md) - Full list of supported API resources
+- [User Management](docs/user-management.md) - How to create and configure API users
 - [Implementation](docs/implementation.md) - Technical details and package structure
 
 ## Installation
