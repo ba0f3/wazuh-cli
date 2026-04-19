@@ -7,6 +7,7 @@ import (
 	"sort"
 	"strconv"
 	"strings"
+	"text/tabwriter"
 
 	"github.com/ba0f3/wazuh-cli/internal/config"
 	"github.com/spf13/cobra"
@@ -167,7 +168,7 @@ func configToMap(cfg *config.Config) map[string]string {
 	m := make(map[string]string)
 	m["url"] = cfg.URL
 	m["user"] = cfg.User
-	m["password"] = cfg.Password
+	m["password"] = maskSecret(cfg.Password)
 	m["insecure"] = strconv.FormatBool(cfg.Insecure)
 	m["ca_cert"] = cfg.CACert
 	m["client_cert"] = cfg.ClientCert
@@ -271,14 +272,20 @@ func listConfig(m map[string]string) error {
 	}
 	sort.Strings(keys)
 
+	w := tabwriter.NewWriter(os.Stdout, 0, 0, 2, ' ', 0)
 	for _, k := range keys {
-		if m[k] != "" {
-			val := m[k]
-			if k == "password" {
-				val = "********"
-			}
-			fmt.Printf("%s = %s\n", k, val)
+		val := m[k]
+		if val == "" {
+			val = "(not set)"
 		}
+		fmt.Fprintf(w, "%s:\t%s\n", k, val)
 	}
-	return nil
+	return w.Flush()
+}
+
+func maskSecret(val string) string {
+	if val == "" {
+		return ""
+	}
+	return "(already set)"
 }
