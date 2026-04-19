@@ -1,216 +1,123 @@
-# wazuh-cli
+<div align="center">
+  <img src="https://unavatar.io/github/wazuh" alt="Wazuh Logo" width="200" />
+  <h1>wazuh-cli</h1>
+  <p><b>The AI-agent-first CLI for the Wazuh Server API</b></p>
 
-> AI-agent-first CLI for the Wazuh Server API
+  <div>
+    <a href="https://golang.org"><img src="https://img.shields.io/badge/Go-1.26+-00ADD8?style=for-the-badge&logo=go" alt="Go"></a>
+    <a href="https://github.com/ba0f3/wazuh-cli/releases"><img src="https://img.shields.io/github/v/release/ba0f3/wazuh-cli?style=for-the-badge&color=blue" alt="Release"></a>
+    <a href="LICENSE"><img src="https://img.shields.io/badge/License-MIT-green?style=for-the-badge" alt="License"></a>
+  </div>
 
-[![Go](https://img.shields.io/badge/Go-1.22+-00ADD8?logo=go)](https://golang.org)
-[![License](https://img.shields.io/badge/license-MIT-blue)](LICENSE)
+  <br />
 
-`wazuh-cli` wraps the entire Wazuh Server REST API in a single binary with structured JSON/Markdown output, making it the ideal tool for AI agents (Claude Code, Gemini CLI, Cline, etc.) and human operators alike.
+  <p>
+    <code>wazuh-cli</code> is a high-performance, single-binary wrapper for the entire Wazuh Server REST API. 
+    Designed specifically for <b>AI agents</b> (Claude Code, Gemini CLI, Cline) and <b>Security Engineers</b> who value speed, structure, and security.
+  </p>
+</div>
 
 ---
 
-## Features
+## ⚡ Key Features
 
-- **Complete API coverage** — agents, rules, decoders, SCA, vulnerabilities, FIM, syscollector, active response, cluster, RBAC, MITRE ATT&CK, and more
-- **AI Agent-First**: Machine-parsable JSON output, deterministic exit codes, and a built-in Agent Skill.
-- **Secure**: 0600 file permissions, credential masking, and secure interactive login.
+*   🛡️ **Total Parity** — Complete coverage of all Wazuh API modules: Agents, FIM, SCA, RBAC, and more.
+*   🤖 **AI Native** — Built-in [Agent Skill](skill/SKILL.md), deterministic exit codes, and machine-first JSON output.
+*   🔒 **Hardened Security** — 0600 file permissions, secure interactive login, and credential masking.
+*   📊 **Rich Output** — Toggle between structured JSON for scripts and clean Markdown tables for reports.
+*   🚀 **Zero Friction** — Single binary, no heavy dependencies, and a 4-tier configuration system.
 
-## Documentation
+---
 
-- [Architecture](docs/architecture.md) - Design philosophy and component structure
-- [Authentication](docs/authentication.md) - Multi-method auth, token caching, and security
-- [Configuration](docs/configuration.md) - Priority resolution and config management
-- [Command Reference](docs/commands.md) - Full list of supported API resources
-- [User Management](docs/user-management.md) - How to create and configure API users
-- [Implementation](docs/implementation.md) - Technical details and package structure
+## 📂 Documentation
 
-## Installation
+Quick links to deep-dive guides:
 
+- 🏗️ [**Architecture**](docs/architecture.md) — Design philosophy and component structure.
+- 🔑 [**Authentication**](docs/authentication.md) — Multi-method auth and token caching.
+- ⚙️ [**Configuration**](docs/configuration.md) — Priority resolution and environment variables.
+- 📜 [**Command Reference**](docs/commands.md) — Comprehensive list of supported modules.
+- 👥 [**User Management**](docs/user-management.md) — How to create and configure API users.
+- 🛠️ [**Implementation**](docs/implementation.md) — Technical details for developers.
+
+---
+
+## 🛠️ Installation
+
+### From Source
 ```bash
-# From source
 git clone https://github.com/ba0f3/wazuh-cli
 cd wazuh-cli
-go build -o wazuh-cli .
-sudo mv wazuh-cli /usr/local/bin/
+make build
+sudo mv bin/wazuh-cli /usr/local/bin/
 ```
 
 ---
 
-## Quick Start
+## 🚦 Quick Start
 
+### 1. Secure Login
+Use the interactive login to cache your JWT token without leaking passwords to your shell history:
 ```bash
-# 1. Initialize configuration
-wazuh-cli init --url https://wazuh-server:55000 --user admin --password secret
+wazuh-cli auth login --url https://wazuh:55000 --user admin --insecure
+```
 
-# 2. Verify connectivity
+### 2. Verify Connectivity
+```bash
 wazuh-cli manager info
+```
 
-# 3. List active agents
-wazuh-cli agent list --status active
+### 3. Practical Examples
+```bash
+# List active agents in Markdown format
+wazuh-cli agent list --status active --output markdown
 
-# 4. Find critical vulnerabilities
+# Find critical vulnerabilities for a specific agent
 wazuh-cli vulnerability list 001 --severity critical
 
-# 5. Check cluster health
+# Check cluster and manager status
 wazuh-cli cluster health
+wazuh-cli manager status
 ```
 
 ---
 
-## Configuration
+## ⚙️ Configuration Priority
 
-Configuration is loaded in priority order (highest wins):
+Settings are merged in the following order (highest wins):
 
-| Priority | Source | Example |
-|---|---|---|
-| 1 | CLI flag | `--url https://wazuh:55000` |
-| 2 | Environment variable | `WAZUH_URL=https://wazuh:55000` |
-| 3 | `.env` in current directory | `WAZUH_URL=https://wazuh:55000` |
-| 4 | Config file | `~/.config/wazuh/config.json` |
+1.  **Flags**: `--url`, `--user`, `--password`, etc.
+2.  **Env Vars**: `WAZUH_URL`, `WAZUH_USER`, `WAZUH_PASSWORD`, `WAZUH_TOKEN`.
+3.  **Local**: `.env` file in the current working directory.
+4.  **Global**: `~/.config/wazuh/config.json`.
 
-### Config File (`~/.config/wazuh/config.json`)
-
-```json
-{
-  "url": "https://wazuh-server:55000",
-  "user": "admin",
-  "password": "your-password",
-  "insecure": false,
-  "timeout": 30,
-  "output": "json",
-  "pretty": true
-}
-```
-
-> **Security**: Config file must have `0600` permissions (enforced on load).
-
-### Environment Variables
-
-| Variable | Description |
-|---|---|
-| `WAZUH_URL` | API URL |
-| `WAZUH_USER` | Username |
-| `WAZUH_PASSWORD` | Password |
-| `WAZUH_TOKEN` | Raw JWT (skips user/password auth) |
-| `WAZUH_INSECURE` | Skip TLS (`true`/`1`) |
-| `WAZUH_CA_CERT` | Path to custom CA cert |
+> [!IMPORTANT]
+> Both the config file and the token cache (`~/.config/wazuh/token`) must have **0600 permissions**. The CLI will refuse to load them if they are too open.
 
 ---
 
-## Command Reference
+## 🤖 AI Agent Integration
 
-```
-wazuh-cli
-├── init                    Setup configuration
-├── auth                    Authentication management
-│   └── login               Secure interactive login
-├── config                  Manage local configuration file
-│   ├── list                List all configured values
-│   ├── get <KEY>           Get a specific value
-│   ├── set <KEY> <VALUE>   Set a value
-│   └── delete <KEY>        Delete a value
-├── agent                   Agent management
-│   ├── list                List agents (--status, --group, --query)
-│   ├── get <ID>            Get agent details
-│   ├── delete <ID>         Delete agent
-│   ├── restart <ID>        Restart agent
-│   ├── summary             Agent status counts
-│   ├── key <ID>            Get agent key
-│   ├── upgrade <ID>        Upgrade agent
-│   └── config <ID>         Get active config (--component, --configuration)
-├── group                   Agent group management
-│   ├── list / get / create / delete
-│   ├── agents <NAME>       List group agents
-│   ├── add-agent           Add agent to group
-│   └── remove-agent        Remove agent from group
-├── rule                    Rules
-│   ├── list / get / files / groups
-├── decoder                 Decoders
-│   ├── list / get / files
-├── sca                     Security Configuration Assessment
-│   ├── list / get / checks
-├── vulnerability           Vulnerability detection
-│   ├── list / summary
-├── syscollector            System inventory
-│   ├── hardware / os / packages / processes / ports / netaddr / netiface / hotfixes
-├── syscheck                File Integrity Monitoring
-│   ├── list / run / clear / last-scan
-├── rootcheck               Rootcheck
-│   ├── list / run / clear / last-scan
-├── active-response         Active response
-│   └── run
-├── cluster                 Cluster management
-│   ├── status / nodes / node / health / config / restart
-├── manager                 Manager info & control
-│   ├── info / status / config / stats / logs / log-summary / restart / validation
-├── security                RBAC
-│   ├── user  (list/get/create/update/delete)
-│   ├── role  (list/get/create/delete)
-│   ├── policy (list/get/delete)
-│   └── rule  (list/get)
-├── cdb-list                CDB lists
-│   ├── list / get / delete
-├── task                    Tasks
-│   └── list
-├── mitre                   MITRE ATT&CK
-│   ├── list / get
-├── logtest                 Log test engine
-│   ├── run / end
-└── ciscat                  CIS-CAT results
-    └── results <AGENT_ID>
-```
+`wazuh-cli` is optimized to be used as a tool by LLM-based agents. 
+
+### Claude Code Setup
+1. Copy the skill definition: `cp skill/SKILL.md ~/.claude/skills/wazuh-cli.md`
+2. Or simply reference it in your project's `CLAUDE.md`.
+
+The skill file provides the agent with a compressed reference of all commands, investigation patterns, and error recovery strategies.
 
 ---
 
-## Global Flags
+## 🛡️ Security Policy
 
-```
--u, --url string         Wazuh API URL
-    --user string        API username
-    --password string    API password (use '-' to read from stdin)
-    --token string       Raw JWT token
--o, --output string      Output format: json, markdown, raw (default: json)
-    --pretty             Pretty-print JSON
--k, --insecure           Skip TLS certificate verification
-    --ca-cert string     Custom CA certificate path
-    --timeout int        HTTP timeout in seconds (default: 30)
-    --debug              Debug logging to stderr
--q, --quiet              Suppress informational messages
-    --config string      Config file path
-```
+Please refer to [SECURITY.md](SECURITY.md) for supported versions and instructions on how to report a vulnerability.
 
 ---
 
-## AI Agent Integration
+## 📜 License
 
-Install the built-in skill for Claude Code or compatible agents:
+Distributed under the **MIT License**. See `LICENSE` for more information.
 
-```bash
-# For Claude Code (copy to your skills directory)
-cp skill/SKILL.md ~/.claude/skills/wazuh-cli.md
-
-# Or reference the skill directly in your CLAUDE.md:
-# See skill/SKILL.md for wazuh-cli usage
-```
-
-The `skill/SKILL.md` file contains:
-- Complete command reference with examples
-- Common investigation workflows
-- Error handling patterns
-- Output format guidance for programmatic parsing
-
----
-
-## Security
-
-- Config file permissions enforced to `0600`
-- JWT tokens cached at `~/.config/wazuh/token` (`0600`)
-- Credentials never logged (even in `--debug` mode)
-- TLS verification on by default (`--insecure` explicitly required)
-- Password from stdin: `--password -`
-
----
-
-## License
-
-MIT
+<div align="center">
+  <sub>Made with ❤️ in Vietnam 🇻🇳</sub>
+</div>
