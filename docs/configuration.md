@@ -20,6 +20,12 @@
 | `output` | `WAZUH_OUTPUT` | Default output format (`json`, `markdown`, `raw`) |
 | `timeout` | `WAZUH_TIMEOUT` | HTTP timeout in seconds |
 | `debug` | `WAZUH_DEBUG` | Enable verbose debug logging |
+| `indexer_url` | `WAZUH_INDEXER_URL` | Wazuh Indexer URL (e.g. `https://indexer:9200`) |
+| `indexer_user` | `WAZUH_INDEXER_USER` | Indexer username (defaults to `user` if omitted) |
+| `indexer_password` | `WAZUH_INDEXER_PASSWORD` | Indexer password (defaults to `password` if omitted) |
+| `indexer_index` | `WAZUH_INDEXER_INDEX` | Index pattern for alerts (defaults to `wazuh-alerts-4.x-*`) |
+
+> **Note on Indexer Credentials**: If you configure `indexer_url` to query alerts but leave `indexer_user` and `indexer_password` blank, `wazuh-cli` assumes your Indexer and Manager API share the same credentials and will use `user` and `password` for Indexer authentication.
 
 ## Config Management Commands
 

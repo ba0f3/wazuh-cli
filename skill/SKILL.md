@@ -36,7 +36,7 @@ Download the latest binary from the [GitHub Releases](https://github.com/ba0f3/w
 git clone https://github.com/ba0f3/wazuh-cli.git
 cd wazuh-cli
 make build
-sudo mv bin/wazuh-cli /usr/local/bin/
+mv bin/wazuh-cli $HOME/bin/wazuh-cli
 ```
 
 ## Setup
@@ -70,6 +70,7 @@ export WAZUH_PASSWORD=your-password
 ```bash
 wazuh-cli config set url https://wazuh-server:55000
 wazuh-cli config set user admin
+wazuh-cli config set indexer_url https://wazuh-indexer:9200
 wazuh-cli config list
 ```
 
@@ -111,6 +112,34 @@ wazuh-cli --url https://wazuh-server:55000 --user admin --password secret agent 
 ---
 
 ## Command Reference
+
+### Alerts (Wazuh Indexer)
+
+> [!NOTE]
+> Alerts are stored in the Wazuh Indexer (OpenSearch), not the Manager API.
+> You must configure at least the `indexer_url` via `wazuh-cli config set indexer_url`
+> to use these commands. If `indexer_user` and `indexer_password` are omitted,
+> `wazuh-cli` will automatically use the Manager API credentials.
+
+```bash
+# List recent alerts (default limit: 50)
+wazuh-cli alert list
+
+# Filter alerts by rule level and time
+wazuh-cli alert list --level 10 --from "now-1h"
+
+# Search alerts by agent ID or rule ID
+wazuh-cli alert list --agent-id 001 --rule-id 5710
+
+# Get a specific alert by document ID
+wazuh-cli alert get eA3_p40BqY8g5Jz_ZfK8
+
+# Get alert statistics grouped by rule level (default)
+wazuh-cli alert stats --from "now-24h"
+
+# Get alert statistics grouped by agent
+wazuh-cli alert stats --group-by agent
+```
 
 ### Agents
 
@@ -212,7 +241,7 @@ wazuh-cli syscollector ports 001
 wazuh-cli syscheck list 001
 
 # Filter by file
-wazuh-cli syscheck list 001 --file /etc/passwd
+wazuh-cli syscheck list 001 --file /etc/os-release
 
 # Run FIM scan
 wazuh-cli syscheck run 001
@@ -301,7 +330,10 @@ wazuh-cli task list --status "In progress"
 ### Investigate a compromised agent
 
 ```bash
-# 1. Get agent details
+# 1. Get recent high-level alerts
+wazuh-cli alert list --agent-id 001 --level 12 --from "now-24h" | jq '.[].rule.description'
+
+# 2. Get agent details
 wazuh-cli agent get 001
 
 # 2. List critical vulnerabilities
@@ -313,10 +345,10 @@ wazuh-cli syscollector processes 001 | jq '.[] | select(.name | test("suspicious
 # 4. Check open ports
 wazuh-cli syscollector ports 001
 
-# 5. Get recent FIM changes
+# 6. Get recent FIM changes
 wazuh-cli syscheck list 001
 
-# 6. Run active response to isolate (if needed)
+# 7. Run active response to isolate (if needed)
 wazuh-cli active-response run --agent-id 001 --command firewall-drop --arguments "-", "null", "0.0.0.0"
 ```
 

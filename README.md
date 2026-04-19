@@ -95,9 +95,12 @@ wazuh-cli manager status
 Settings are merged in the following order (highest wins):
 
 1.  **Flags**: `--url`, `--user`, `--password`, etc.
-2.  **Env Vars**: `WAZUH_URL`, `WAZUH_USER`, `WAZUH_PASSWORD`, `WAZUH_TOKEN`.
+2.  **Env Vars**: `WAZUH_URL`, `WAZUH_USER`, `WAZUH_PASSWORD`, `WAZUH_TOKEN`, `WAZUH_INDEXER_URL`, etc.
 3.  **Local**: `.env` file in the current working directory.
 4.  **Global**: `~/.config/wazuh/config.json`.
+
+> [!NOTE]
+> **Alerts & OpenSearch**: To query alerts using `wazuh-cli alert`, you must configure `indexer_url` (e.g. `wazuh-cli config set indexer_url https://indexer:9200`). If `indexer_user` and `indexer_password` are not explicitly set, the CLI will automatically fall back to using the Wazuh Manager `user` and `password`.
 
 > [!IMPORTANT]
 > Both the config file and the token cache (`~/.config/wazuh/token`) must have **0600 permissions**. The CLI will refuse to load them if they are too open.

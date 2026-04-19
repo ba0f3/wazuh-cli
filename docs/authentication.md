@@ -36,3 +36,31 @@ The `wazuh-cli auth login` command uses a secure terminal prompt (masked input) 
 - **--insecure (-k)**: Disables TLS verification for servers using self-signed certificates.
 - **--ca-cert**: Allows providing a custom Root CA for private certificate authorities.
 - **mTLS**: Supports `--client-cert` and `--client-key` for environments requiring mutual TLS.
+
+## OpenSearch Indexer Authentication
+
+When running `wazuh-cli alert` commands, the CLI communicates directly with the Wazuh Indexer (OpenSearch), not the Manager API. OpenSearch uses its own internal security plugin (Basic Auth), which requires appropriate permissions.
+
+### Credential Fallback
+If you configure `indexer_url` but omit `indexer_user` and `indexer_password`, the CLI automatically falls back to using the Manager API `user` and `password`. This works well for default installations where both services use `admin` credentials.
+
+### Indexer Permissions Setup
+
+If you use a specific API user (like `wazuh-cli`) and encounter a `403 Forbidden` error during alert queries, your CLI user lacks the necessary read permissions on the OpenSearch indices (`wazuh-alerts-*`).
+
+To fix this, you must map your user to a role with proper index permissions:
+
+1. Log into the **Wazuh/OpenSearch Dashboards** using an admin account.
+2. Go to **Security** -> **Roles** and click **Create role** (e.g., `wazuh_cli_reader`).
+3. Under **Index permissions**:
+   - **Index**: `wazuh-alerts-*`
+   - **Permissions**: Add `indices:data/read/search` (or select the `read` action group).
+4. Save the role.
+5. Go to **Mapped users** for this role and add your CLI user (e.g., `wazuh-cli`).
+
+Alternatively, you can bypass role mapping by explicitly configuring the CLI to use an admin indexer account while keeping the Manager API account restricted:
+
+```bash
+wazuh-cli config set indexer_user admin
+wazuh-cli config set indexer_password "admin_password"
+```

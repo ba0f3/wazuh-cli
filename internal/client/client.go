@@ -22,7 +22,7 @@ type Client struct {
 
 // NewClient creates a new Wazuh API client from the given config.
 func NewClient(cfg *config.Config) (*Client, error) {
-	tlsConfig, err := buildTLSConfig(cfg)
+	tlsConfig, err := BuildTLSConfig(cfg)
 	if err != nil {
 		return nil, fmt.Errorf("building TLS config: %w", err)
 	}
@@ -57,8 +57,8 @@ func NewClient(cfg *config.Config) (*Client, error) {
 	return c, nil
 }
 
-// buildTLSConfig creates a tls.Config based on the client configuration.
-func buildTLSConfig(cfg *config.Config) (*tls.Config, error) {
+// BuildTLSConfig creates a tls.Config based on the client configuration.
+func BuildTLSConfig(cfg *config.Config) (*tls.Config, error) {
 	tlsCfg := &tls.Config{
 		InsecureSkipVerify: cfg.Insecure, //nolint:gosec // intentional, flagged by --insecure
 	}

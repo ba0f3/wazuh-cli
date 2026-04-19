@@ -178,6 +178,10 @@ func configToMap(cfg *config.Config) map[string]string {
 	m["pretty"] = strconv.FormatBool(cfg.Pretty)
 	m["debug"] = strconv.FormatBool(cfg.Debug)
 	m["quiet"] = strconv.FormatBool(cfg.Quiet)
+	m["indexer_url"] = cfg.IndexerURL
+	m["indexer_user"] = cfg.IndexerUser
+	m["indexer_password"] = maskSecret(cfg.IndexerPassword)
+	m["indexer_index"] = cfg.IndexerIndex
 	return m
 }
 
@@ -227,6 +231,14 @@ func setConfigValue(cfg *config.Config, key, val string) error {
 			return err
 		}
 		cfg.Quiet = b
+	case "indexer_url":
+		cfg.IndexerURL = val
+	case "indexer_user":
+		cfg.IndexerUser = val
+	case "indexer_password":
+		cfg.IndexerPassword = val
+	case "indexer_index":
+		cfg.IndexerIndex = val
 	default:
 		return fmt.Errorf("unknown config key %q", key)
 	}
@@ -259,6 +271,14 @@ func deleteConfigValue(cfg *config.Config, key string) error {
 		cfg.Debug = false
 	case "quiet":
 		cfg.Quiet = false
+	case "indexer_url":
+		cfg.IndexerURL = ""
+	case "indexer_user":
+		cfg.IndexerUser = ""
+	case "indexer_password":
+		cfg.IndexerPassword = ""
+	case "indexer_index":
+		cfg.IndexerIndex = ""
 	default:
 		return fmt.Errorf("unknown config key %q", key)
 	}

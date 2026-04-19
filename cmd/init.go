@@ -24,6 +24,10 @@ or run without flags for an interactive setup wizard.`,
 		insecure, _ := cmd.Flags().GetBool("insecure")
 		output, _ := cmd.Flags().GetString("output")
 		configOut, _ := cmd.Flags().GetString("config-path")
+		indexerURL, _ := cmd.Flags().GetString("indexer-url")
+		indexerUser, _ := cmd.Flags().GetString("indexer-user")
+		indexerPassword, _ := cmd.Flags().GetString("indexer-password")
+		indexerIndex, _ := cmd.Flags().GetString("indexer-index")
 
 		if configOut == "" {
 			configOut = config.DefaultConfigPath()
@@ -50,13 +54,17 @@ or run without flags for an interactive setup wizard.`,
 		}
 
 		cfg := &config.Config{
-			URL:      url,
-			User:     user,
-			Password: password,
-			Insecure: insecure,
-			Timeout:  config.DefaultTimeout,
-			Output:   output,
-			Pretty:   true,
+			URL:             url,
+			User:            user,
+			Password:        password,
+			Insecure:        insecure,
+			Timeout:         config.DefaultTimeout,
+			Output:          output,
+			Pretty:          true,
+			IndexerURL:      indexerURL,
+			IndexerUser:     indexerUser,
+			IndexerPassword: indexerPassword,
+			IndexerIndex:    indexerIndex,
 		}
 		if cfg.Output == "" {
 			cfg.Output = config.DefaultOutput
@@ -86,4 +94,8 @@ func init() {
 	initCmd.Flags().Bool("insecure", false, "skip TLS verification")
 	initCmd.Flags().String("output", "json", "default output format: json, markdown, raw")
 	initCmd.Flags().String("config-path", "", "output config file path (default: ~/.config/wazuh/config.json)")
+	initCmd.Flags().String("indexer-url", "", "Wazuh Indexer URL (e.g. https://indexer:9200)")
+	initCmd.Flags().String("indexer-user", "", "Indexer username")
+	initCmd.Flags().String("indexer-password", "", "Indexer password")
+	initCmd.Flags().String("indexer-index", "", "Indexer index pattern (default: wazuh-alerts-4.x-*)")
 }

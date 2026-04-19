@@ -37,6 +37,12 @@ type Config struct {
 	ClientCert string `json:"client_cert"`
 	ClientKey  string `json:"client_key"`
 
+	// Indexer (OpenSearch)
+	IndexerURL      string `json:"indexer_url"`
+	IndexerUser     string `json:"indexer_user"`
+	IndexerPassword string `json:"indexer_password"`
+	IndexerIndex    string `json:"indexer_index"`
+
 	// Behavior
 	Timeout int    `json:"timeout"`
 	Output  string `json:"output"`
@@ -192,6 +198,7 @@ func envMap() map[string]string {
 		"WAZUH_URL", "WAZUH_USER", "WAZUH_PASSWORD", "WAZUH_TOKEN",
 		"WAZUH_INSECURE", "WAZUH_CA_CERT", "WAZUH_CLIENT_CERT", "WAZUH_CLIENT_KEY",
 		"WAZUH_TIMEOUT", "WAZUH_OUTPUT", "WAZUH_PRETTY",
+		"WAZUH_INDEXER_URL", "WAZUH_INDEXER_USER", "WAZUH_INDEXER_PASSWORD", "WAZUH_INDEXER_INDEX",
 	}
 	m := make(map[string]string, len(keys))
 	for _, k := range keys {
@@ -230,6 +237,18 @@ func applyEnvMap(cfg *Config, env map[string]string) {
 	}
 	if v := env["WAZUH_OUTPUT"]; v != "" {
 		cfg.Output = v
+	}
+	if v := env["WAZUH_INDEXER_URL"]; v != "" {
+		cfg.IndexerURL = v
+	}
+	if v := env["WAZUH_INDEXER_USER"]; v != "" {
+		cfg.IndexerUser = v
+	}
+	if v := env["WAZUH_INDEXER_PASSWORD"]; v != "" {
+		cfg.IndexerPassword = v
+	}
+	if v := env["WAZUH_INDEXER_INDEX"]; v != "" {
+		cfg.IndexerIndex = v
 	}
 }
 
@@ -273,6 +292,18 @@ func applyOverrides(dst, src *Config) {
 	}
 	if src.Quiet {
 		dst.Quiet = true
+	}
+	if src.IndexerURL != "" {
+		dst.IndexerURL = src.IndexerURL
+	}
+	if src.IndexerUser != "" {
+		dst.IndexerUser = src.IndexerUser
+	}
+	if src.IndexerPassword != "" {
+		dst.IndexerPassword = src.IndexerPassword
+	}
+	if src.IndexerIndex != "" {
+		dst.IndexerIndex = src.IndexerIndex
 	}
 }
 

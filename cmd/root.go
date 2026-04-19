@@ -54,7 +54,8 @@ Errors: machine-readable JSON on stdout, human text on stderr`,
 		name := cmd.Name()
 		if name == "init" || name == "version" || name == "completion" ||
 			name == "config" || (cmd.HasParent() && cmd.Parent().Name() == "config") ||
-			name == "auth" || (cmd.HasParent() && cmd.Parent().Name() == "auth") {
+			name == "auth" || (cmd.HasParent() && cmd.Parent().Name() == "auth") ||
+			name == "alert" || (cmd.HasParent() && cmd.Parent().Name() == "alert") {
 			return nil
 		}
 
