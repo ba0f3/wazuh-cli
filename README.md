@@ -44,7 +44,15 @@ Quick links to deep-dive guides:
 
 ## 🛠️ Installation
 
-### From Source
+### 🚀 Primary: Go Install
+```bash
+go install github.com/ba0f3/wazuh-cli@latest
+```
+
+### 📦 Alternative: Pre-built Binaries
+Download the latest binary for your platform from the [GitHub Releases](https://github.com/ba0f3/wazuh-cli/releases) page.
+
+### 🏗️ From Source
 ```bash
 git clone https://github.com/ba0f3/wazuh-cli
 cd wazuh-cli

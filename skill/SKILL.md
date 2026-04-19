@@ -21,6 +21,24 @@ no interactive prompts are ever issued during normal operation.
 
 ---
 
+## Installation
+
+### Primary: Go Install
+```bash
+go install github.com/ba0f3/wazuh-cli@latest
+```
+
+### Alternative: Pre-built Binaries
+Download the latest binary from the [GitHub Releases](https://github.com/ba0f3/wazuh-cli/releases) page.
+
+### From Source
+```bash
+git clone https://github.com/ba0f3/wazuh-cli.git
+cd wazuh-cli
+make build
+sudo mv bin/wazuh-cli /usr/local/bin/
+```
+
 ## Setup
 
 ### Option A — Interactive login (recommended for security)
