@@ -58,7 +58,7 @@ brews:
       name: homebrew-tap
     directory: Formula
     homepage: "https://github.com/ba0f3/wazuh-cli"
-    description: "The AI-agent-first CLI for the Wazuh Server API"
+    description: "AI-agent-first CLI for the Wazuh Server API"
     license: "MIT"
     test: |
-      system "#{bin}/wazuh-cli --version"
+      system "#{bin}/wazuh-cli", "--version"
