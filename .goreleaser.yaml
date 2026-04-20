@@ -63,4 +63,4 @@ brews:
     test: |
       system "#{bin}/wazuh-cli --version"
     env:
-        GITHUB_TOKEN: ${{ secrets.TAP_GITHUB_TOKEN }}
+      GITHUB_TOKEN: ${{ secrets.TAP_GITHUB_TOKEN }}
