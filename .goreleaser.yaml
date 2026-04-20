@@ -62,5 +62,3 @@ brews:
     license: "MIT"
     test: |
       system "#{bin}/wazuh-cli --version"
-    env:
-      GITHUB_TOKEN: ${{ secrets.TAP_GITHUB_TOKEN }}
