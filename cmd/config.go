@@ -1,8 +1,10 @@
 package cmd
 
 import (
+	"bufio"
 	"encoding/json"
 	"fmt"
+	"io"
 	"os"
 	"sort"
 	"strconv"
@@ -56,10 +58,38 @@ var configGetCmd = &cobra.Command{
 }
 
 var configSetCmd = &cobra.Command{
-	Use:   "set <key> <value>",
+	Use:   "set <key> [value]",
 	Short: "Set a value in the config file",
-	Args:  cobra.ExactArgs(2),
+	Long: `Set a configuration value.
+
+For sensitive keys (password, indexer_password) two explicit flags control
+how the secret is supplied:
+
+  -P, --from-stdin   read the value from stdin (safest — never in shell history)
+  -p, --password     pass the value inline as a flag argument
+
+If neither flag is given, the positional [value] argument is used as a fallback
+(this applies to all keys, but is discouraged for passwords).
+
+Examples:
+  # Read password from stdin (recommended)
+  wazuh-cli config set password -P < /run/secrets/wazuh_pass
+  read -rs PASS && printf '%s' "$PASS" | wazuh-cli config set password -P
+
+  # Pass inline via flag (shows up in process list, but not shell history)
+  wazuh-cli config set password -p s3cr3t
+
+  # Regular non-secret key
+  wazuh-cli config set url https://wazuh:55000`,
+	Args: cobra.RangeArgs(1, 2),
 	RunE: func(cmd *cobra.Command, args []string) error {
+		fromStdin, _ := cmd.Flags().GetBool("from-stdin")
+		inlinePass, _ := cmd.Flags().GetString("password")
+
+		if fromStdin && inlinePass != "" {
+			return fmt.Errorf("flags -P/--from-stdin and -p/--password are mutually exclusive")
+		}
+
 		cfg, err := loadConfigFileOnly()
 		if err != nil {
 			// If file doesn't exist, start with a fresh one
@@ -75,7 +105,34 @@ var configSetCmd = &cobra.Command{
 		}
 
 		key := args[0]
-		val := args[1]
+		isPasswordKey := strings.ToLower(key) == "password" || strings.ToLower(key) == "indexer_password"
+
+		var val string
+		switch {
+		case fromStdin:
+			// -P: read secret from stdin regardless of terminal state
+			raw, err := io.ReadAll(bufio.NewReader(os.Stdin))
+			if err != nil {
+				return fmt.Errorf("reading from stdin: %w", err)
+			}
+			val = strings.TrimRight(string(raw), "\r\n")
+			if val == "" {
+				return fmt.Errorf("value read from stdin is empty")
+			}
+		case inlinePass != "":
+			// -p: value supplied inline via flag
+			val = inlinePass
+		case len(args) == 2:
+			// positional fallback
+			val = args[1]
+		default:
+			if isPasswordKey {
+				return fmt.Errorf(
+					"password value required — use -P to read from stdin or -p <value> for inline:\n" +
+						"  wazuh-cli config set %s -P", key)
+			}
+			return fmt.Errorf("value required for key %q", key)
+		}
 
 		if err := setConfigValue(cfg, key, val); err != nil {
 			return err
@@ -86,7 +143,7 @@ var configSetCmd = &cobra.Command{
 		}
 
 		displayVal := val
-		if key == "password" {
+		if isPasswordKey {
 			displayVal = "********"
 		}
 		fmt.Fprintf(os.Stderr, "✓ Set %s = %s\n", key, displayVal)
@@ -137,6 +194,9 @@ var configDeleteCmd = &cobra.Command{
 func init() {
 	rootCmd.AddCommand(configCmd)
 	configCmd.AddCommand(configGetCmd, configSetCmd, configListCmd, configDeleteCmd)
+
+	configSetCmd.Flags().BoolP("from-stdin", "P", false, "read the value from stdin (recommended for secrets)")
+	configSetCmd.Flags().StringP("password", "p", "", "pass the value inline as a flag (shows in process list)")
 }
 
 // loadConfigFileOnly loads ONLY the config file, ignoring flags/env.

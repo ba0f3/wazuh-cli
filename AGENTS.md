@@ -1,8 +1,14 @@
-# CLAUDE.md
+# AGENTS.md
 
-This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
+This file provides guidance to AI coding agents (Gemini CLI, Codex, GPT-Engineer, etc.)
+when working with code in this repository.
 
-`wazuh-cli` is a Go CLI wrapping the Wazuh Server REST API (and OpenSearch indexer for alerts). Target Go 1.26+.
+> [!IMPORTANT]
+> **Whenever you change behaviour, add a feature, or modify a command's interface,
+> you MUST update every document listed in the [Documentation Checklist](#documentation-checklist)
+> that is affected by the change.** Do not leave docs stale.
+
+---
 
 ## Build, Test, Run
 
@@ -18,12 +24,15 @@ go test -v -run TestName ./internal/config   # single test
 ./bin/wazuh-cli --help                       # verify help text
 ```
 
-`main.go` is a thin wrapper: `cmd.Execute()` then `os.Exit(cmd.HandleError(err))`. All logic lives in `cmd/` and `internal/`.
+`main.go` is a thin wrapper: `cmd.Execute()` then `os.Exit(cmd.HandleError(err))`.
+All logic lives in `cmd/` and `internal/`.
+
+---
 
 ## Architecture
 
 ### Execution flow
-`cmd/root.go` defines a persistent `PersistentPreRunE` that:
+`cmd/root.go` defines a `PersistentPreRunE` that:
 1. Parses `flagOverrides` into `config.Config`.
 2. Resolves config in priority order: **CLI flags → `WAZUH_*` env → `.env` in CWD → `~/.config/wazuh/config.json`** (`internal/config/config.Load`).
 3. Calls `cfg.Validate()` — requires URL + (user+password OR raw token).
@@ -44,13 +53,17 @@ Separate OpenSearch client used by `cmd/alert.go` to query Wazuh alerts. Config:
 ### Output (`internal/output/`)
 `Formatter.Write(data)` dispatches on format: `json` (default, pretty by default), `markdown` (renders a table via `table.go`), or `raw` (passthrough for `[]byte`/`json.RawMessage`). `ExitCode(err)` maps the marker interfaces above to exit codes **0/1/2/3/4** (ok / client / API / auth / permission). `WriteError` emits JSON envelopes on stdout in JSON mode, plain text on stderr otherwise.
 
+---
+
 ## Key Patterns
 
 - **Error contract**: JSON envelope `{"error": true, "code": N, "message": "...", "detail": "..."}`. To surface a specific exit code, return an error implementing the matching marker interface from `internal/output`.
 - **0600 required**: config file and `~/.config/wazuh/config.json`'s sibling `token` must be 0600; loader warns on looser modes. `Config.Save` creates the dir as 0700 and writes as 0600.
-- **Password from stdin**: `config set password -P` reads from stdin (safest). `config set password -p <value>` passes inline. The global `--password -` flag on the root command reads one line from stdin in `PersistentPreRunE` before config resolution.
-- **Sensitive keys**: `password` and `indexer_password` are masked in all display output. Prefer `-P/--from-stdin` > `-p/--password` > positional arg for these keys.
+- **Password from stdin**: use `config set password -P` (reads from stdin) or `config set password -p <value>` (inline flag). The global `--password -` flag on the root command also reads one line from stdin in `PersistentPreRunE`.
 - **Setup**: prefer `wazuh-cli auth login` (interactive, no shell-history leak) over `wazuh-cli init` when helping users configure auth.
+- **Sensitive keys**: `password` and `indexer_password` are masked in all display output; `config set` supports `-P`/`--from-stdin` and `-p`/`--password` flags to avoid leaking secrets.
+
+---
 
 ## Project Layout
 
@@ -66,6 +79,45 @@ internal/indexer/   OpenSearch client for alert queries.
 internal/output/    json/markdown/raw formatters, ExitCode mapping, table renderer.
 docs/               User-facing docs (architecture, auth, configuration, commands, ...).
 skill/SKILL.md      AI-agent skill definition for Claude Code / Gemini / Cline.
-AGENTS.md           Guidance for all AI coding agents (Gemini CLI, Codex, etc.).
-CLAUDE.md           Guidance specific to Claude Code.
+AGENTS.md           This file — guidance for AI coding agents.
+CLAUDE.md           Guidance for Claude Code specifically.
 ```
+
+---
+
+## Documentation Checklist
+
+> [!IMPORTANT]
+> **Always update every applicable document below when making a change.** Stale docs
+> mislead users and other agents. A pull request that changes behaviour without
+> updating docs will be rejected.
+
+| Document | Update when… |
+|---|---|
+| [`README.md`](README.md) | Any user-facing feature, flag, or workflow changes |
+| [`CLAUDE.md`](CLAUDE.md) | Architecture changes, new patterns, pre-run skip list changes |
+| [`AGENTS.md`](AGENTS.md) | Architecture changes, new patterns, any guidance for agents |
+| [`skill/SKILL.md`](skill/SKILL.md) | Any command added/removed/changed, new security notes, new workflows |
+| [`docs/configuration.md`](docs/configuration.md) | New config keys, changed `config set` behaviour, new flags |
+| [`docs/authentication.md`](docs/authentication.md) | Auth flow changes, new credential input methods, security features |
+| [`docs/commands.md`](docs/commands.md) | New subcommands or changed command signatures |
+| [`docs/architecture.md`](docs/architecture.md) | Internal design changes, new packages, execution flow changes |
+| [`docs/implementation.md`](docs/implementation.md) | Developer-facing implementation detail changes |
+| [`docs/user-management.md`](docs/user-management.md) | RBAC or user management changes |
+
+### Quick rule of thumb
+
+- Changed a **flag or command interface**? → `README.md`, `skill/SKILL.md`, `docs/commands.md`, `docs/configuration.md`
+- Changed **security or credential handling**? → `README.md`, `skill/SKILL.md`, `docs/authentication.md`, `CLAUDE.md`, `AGENTS.md`
+- Changed **internal architecture**? → `CLAUDE.md`, `AGENTS.md`, `docs/architecture.md`, `docs/implementation.md`
+- Added a **new command**? → All of the above, plus add an entry in `docs/commands.md`
+
+---
+
+## Security Rules (Never Violate)
+
+1. **Never print or log raw passwords** — mask with `********` or `(already set)`.
+2. **0600 file permissions** — enforce on both `config.json` and the token cache.
+3. **Prefer stdin (`-P`) over inline flags (`-p`) for secrets** — document this order in help text.
+4. **`auth login` is the gold standard** — recommend it first in any setup guidance.
+5. **No interactive prompts in normal operation** — the tool must be fully scriptable by AI agents.

@@ -34,11 +34,12 @@
 Quick links to deep-dive guides:
 
 - 🏗️ [**Architecture**](docs/architecture.md) — Design philosophy and component structure.
-- 🔑 [**Authentication**](docs/authentication.md) — Multi-method auth and token caching.
-- ⚙️ [**Configuration**](docs/configuration.md) — Priority resolution and environment variables.
+- 🔑 [**Authentication**](docs/authentication.md) — Multi-method auth, token caching, and secure password input.
+- ⚙️ [**Configuration**](docs/configuration.md) — Priority resolution, environment variables, and `config set` flags.
 - 📜 [**Command Reference**](docs/commands.md) — Comprehensive list of supported modules.
 - 👥 [**User Management**](docs/user-management.md) — How to create and configure API users.
 - 🛠️ [**Implementation**](docs/implementation.md) — Technical details for developers.
+- 🤖 [**AGENTS.md**](AGENTS.md) — Guidance for AI coding agents (Gemini CLI, Codex, etc.).
 
 ---
 

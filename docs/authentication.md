@@ -22,8 +22,29 @@ Wazuh servers across different versions (4.x, 5.x) and configurations (Proxies, 
 
 ### Credential Masking
 - **Debug Logs**: When running with `--debug`, the password is NEVER printed. Instead, the password length is shown to help with troubleshooting.
-- **Config Output**: `wazuh-cli config list` masks the `password` value.
+- **Config Output**: `wazuh-cli config list` masks the `password` and `indexer_password` values.
 - **Set Feedback**: `wazuh-cli config set password` confirms the update without echoing the secret.
+
+### Supplying Passwords Securely (`config set`)
+`config set` accepts explicit flags to control how secrets for `password` and
+`indexer_password` are supplied:
+
+| Flag | Short | Safety |
+|---|---|---|
+| `--from-stdin` | `-P` | **Best** — value never appears in shell history or process list |
+| `--password` | `-p` | Good — not in shell history, but visible in `ps` output |
+| positional arg | _(none)_ | Avoid — visible in shell history |
+
+```bash
+# Best: redirect a secrets file
+wazuh-cli config set password -P < /run/secrets/wazuh_pass
+
+# Best: interactive read (no echo)
+read -rs PASS && printf '%s' "$PASS" | wazuh-cli config set password -P
+
+# Acceptable: inline flag
+wazuh-cli config set password -p "s3cr3t"
+```
 
 ### Interactive Login
 The `wazuh-cli auth login` command uses a secure terminal prompt (masked input) to read passwords. This prevents secrets from being stored in shell history files (e.g., `.bash_history` or `.fish_history`) or exposed via process lists.

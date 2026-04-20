@@ -72,6 +72,11 @@ wazuh-cli config set url https://wazuh-server:55000
 wazuh-cli config set user admin
 wazuh-cli config set indexer_url https://wazuh-indexer:9200
 wazuh-cli config list
+
+# For password/indexer_password — use -P (stdin) or -p (inline flag)
+wazuh-cli config set password -P < /run/secrets/wazuh_pass   # safest
+wazuh-cli config set password -p "s3cr3t"                     # inline flag fallback
+wazuh-cli config set indexer_password -P < /run/secrets/idx_pass
 ```
 
 ### Option E — Inline flags
@@ -394,7 +399,9 @@ fi
 ## Security Notes
 
 - Config file requires `0600` permissions (enforced on load)
-- JWT tokens are cached at `~/.config/wazuh/token` with `0600` permissions  
-- Use `--password -` to read password from stdin (safe for scripted use)
+- JWT tokens are cached at `~/.config/wazuh/token` with `0600` permissions
+- Use `config set password -P` to read password from stdin (safest — never in history)
+- Use `config set password -p <value>` to pass inline as a flag (not in history, but visible in `ps`)
 - Use `WAZUH_PASSWORD` env var instead of `--password` for process visibility
+- Use `--password -` on the root command to read one line from stdin before config resolution
 - Use `--insecure` only with self-signed certs and on trusted networks

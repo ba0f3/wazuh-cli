@@ -32,10 +32,35 @@
 ### `wazuh-cli config list`
 Shows all values currently saved in the JSON configuration file. Secrets are masked.
 
-### `wazuh-cli config set <KEY> <VALUE>`
+### `wazuh-cli config set <KEY> [VALUE]`
 Updates a specific key in the configuration file.
+
 ```bash
 wazuh-cli config set insecure true
+wazuh-cli config set url https://wazuh:55000
+```
+
+For the sensitive keys `password` and `indexer_password`, two explicit flags
+control how the secret is supplied (to keep it out of shell history):
+
+| Flag | Short | Behaviour |
+|---|---|---|
+| `--from-stdin` | `-P` | Read value from stdin — safest, never in history or process list |
+| `--password` | `-p` | Pass value inline as a flag argument |
+
+If neither flag is given, the positional argument is used as a fallback
+(works for all keys, but discouraged for passwords).
+
+```bash
+# Recommended: read from stdin
+wazuh-cli config set password -P < /run/secrets/wazuh_pass
+read -rs PASS && printf '%s' "$PASS" | wazuh-cli config set password -P
+
+# Inline flag (not in shell history, but visible in process list)
+wazuh-cli config set password -p s3cr3t
+
+# Works for indexer_password too
+wazuh-cli config set indexer_password -P < /run/secrets/indexer_pass
 ```
 
 ### `wazuh-cli config get <KEY>`
