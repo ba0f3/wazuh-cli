@@ -128,7 +128,7 @@ Examples:
 		default:
 			if isPasswordKey {
 				return fmt.Errorf(
-					"password value required — use -P to read from stdin or -p <value> for inline:\n" +
+					"password value required — use -P to read from stdin or -p <value> for inline:\n"+
 						"  wazuh-cli config set %s -P", key)
 			}
 			return fmt.Errorf("value required for key %q", key)
