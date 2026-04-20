@@ -23,7 +23,17 @@ no interactive prompts are ever issued during normal operation.
 
 ## Installation
 
-### Primary: Go Install
+### One-liner (Linux & macOS) — fastest
+```bash
+curl -fsSL https://raw.githubusercontent.com/ba0f3/wazuh-cli/main/install.sh | sh
+```
+
+### Homebrew (macOS & Linux)
+```bash
+brew install ba0f3/tap/wazuh-cli
+```
+
+### Go Install
 ```bash
 go install github.com/ba0f3/wazuh-cli@latest
 ```

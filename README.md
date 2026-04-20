@@ -45,7 +45,25 @@ Quick links to deep-dive guides:
 
 ## 🛠️ Installation
 
-### 🚀 Primary: Go Install
+### ⚡ One-liner (Linux & macOS)
+```bash
+curl -fsSL https://raw.githubusercontent.com/ba0f3/wazuh-cli/main/install.sh | sh
+```
+Detects your OS and architecture, downloads the correct release binary from GitHub, verifies its checksum, and installs to `/usr/local/bin` (or `~/bin` if not writable). Pass optional flags after `sh -s --`:
+```bash
+# install a specific version
+curl -fsSL https://raw.githubusercontent.com/ba0f3/wazuh-cli/main/install.sh | sh -s -- --version v1.2.3
+
+# install to a custom directory
+curl -fsSL https://raw.githubusercontent.com/ba0f3/wazuh-cli/main/install.sh | sh -s -- --dir ~/.local/bin
+```
+
+### 🍺 Homebrew (macOS & Linux)
+```bash
+brew install ba0f3/tap/wazuh-cli
+```
+
+### 🚀 Go Install
 ```bash
 go install github.com/ba0f3/wazuh-cli@latest
 ```

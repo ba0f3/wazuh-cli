@@ -22,7 +22,7 @@ builds:
       - -s -w -X github.com/ba0f3/wazuh-cli/cmd.Version={{.Version}}
 
 archives:
-  - formats: 
+  - formats:
       - tar.gz
     # this name template makes the OS and Arch compatible with the results of `uname`.
     name_template: >-
@@ -35,7 +35,7 @@ archives:
     # use zip for windows archives
     format_overrides:
       - goos: windows
-        formats: 
+        formats:
           - zip
 
 checksum:
@@ -50,3 +50,15 @@ changelog:
     exclude:
       - '^docs:'
       - '^test:'
+
+brews:
+  - name: wazuh-cli
+    repository:
+      owner: ba0f3
+      name: homebrew-tap
+    directory: Formula
+    homepage: "https://github.com/ba0f3/wazuh-cli"
+    description: "The AI-agent-first CLI for the Wazuh Server API"
+    license: "MIT"
+    test: |
+      system "#{bin}/wazuh-cli --version"
