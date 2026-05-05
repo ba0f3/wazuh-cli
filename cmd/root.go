@@ -31,6 +31,18 @@ var globalFmt *output.Formatter
 // configPath is the path to the JSON config file (overridden by --config).
 var configPath string
 
+// isUnderRootSubcommand reports whether cmd is the named direct subcommand of the
+// program root command or a descendant of it. We detect the root as the command whose
+// parent has no parent (Cobra root); this avoids referencing rootCmd and an init cycle.
+func isUnderRootSubcommand(cmd *cobra.Command, name string) bool {
+	for c := cmd; c != nil; c = c.Parent() {
+		if p := c.Parent(); p != nil && p.Parent() == nil && c.Name() == name {
+			return true
+		}
+	}
+	return false
+}
+
 var rootCmd = &cobra.Command{
 	Use:   "wazuh-cli",
 	Short: "AI-agent-first CLI for the Wazuh Server API",
@@ -53,9 +65,9 @@ Errors: machine-readable JSON on stdout, human text on stderr`,
 		// Skip for commands that don't need auth (init, config, auth, version, completion)
 		name := cmd.Name()
 		if name == "init" || name == "version" || name == "completion" ||
-			name == "config" || (cmd.HasParent() && cmd.Parent().Name() == "config") ||
-			name == "auth" || (cmd.HasParent() && cmd.Parent().Name() == "auth") ||
-			name == "alert" || (cmd.HasParent() && cmd.Parent().Name() == "alert") {
+			isUnderRootSubcommand(cmd, "config") ||
+			isUnderRootSubcommand(cmd, "auth") ||
+			isUnderRootSubcommand(cmd, "alert") {
 			return nil
 		}
 
